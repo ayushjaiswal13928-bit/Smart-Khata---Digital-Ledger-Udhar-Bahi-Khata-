@@ -1,0 +1,32 @@
+{
+  "id": "/",
+  "name": "स्मार्ट खाता - डिजिटल कृषि व बटाई बहीखाता",
+  "short_name": "स्मार्ट खाता",
+  "description": "डिजिटल कृषि, बटाईदार साझेदारी व किराया बहीखाता",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#060e0a",
+  "theme_color": "#0c1a13",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

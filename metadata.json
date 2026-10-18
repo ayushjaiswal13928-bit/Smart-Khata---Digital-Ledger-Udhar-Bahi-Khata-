@@ -1,0 +1,6 @@
+{
+  "name": "Smart Khata - Digital Ledger & Udhar Bahi Khata",
+  "description": "Smart Khata digital ledger book for merchants and personal finance. Track customer and supplier credits (Udhar/Jama), send WhatsApp reminders, and manage daily cashbook.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
