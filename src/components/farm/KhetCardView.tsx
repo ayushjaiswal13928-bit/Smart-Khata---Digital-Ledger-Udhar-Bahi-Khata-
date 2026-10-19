@@ -10,6 +10,7 @@ import {
   Warehouse,
   Layers,
   ArrowRight,
+  Trash2,
 } from 'lucide-react';
 import { FarmRecord, Khet, KhetCrop, Lang } from '../../lib/types';
 import { cropLabel } from '../../lib/farmI18n';
@@ -27,6 +28,8 @@ interface KhetCardViewProps {
   onAddExpenseForCrop: (khet: Khet, crop: KhetCrop) => void;
   onAddHarvestForCrop: (khet: Khet, crop: KhetCrop) => void;
   onAddSaleForCrop: (khet: Khet, crop: KhetCrop) => void;
+  onDeleteKhet?: (khet: Khet) => void;
+  onDeleteCrop?: (khet: Khet, crop: KhetCrop) => void;
 }
 
 export function KhetCardView({
@@ -40,6 +43,8 @@ export function KhetCardView({
   onAddExpenseForCrop,
   onAddHarvestForCrop,
   onAddSaleForCrop,
+  onDeleteKhet,
+  onDeleteCrop,
 }: KhetCardViewProps) {
   const isHi = lang === 'hi';
 
@@ -117,24 +122,36 @@ export function KhetCardView({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 w-full sm:w-auto flex-wrap">
           <button
             type="button"
             onClick={() => onAddCrop(khet)}
-            className="px-3 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+            className="flex-1 sm:flex-initial justify-center px-3 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
           >
             <Plus size={15} />
-            <span>{isHi ? ' फसल जोड़ें' : ' Add Crop'}</span>
+            <span>{isHi ? 'फसल जोड़ें' : 'Add Crop'}</span>
           </button>
 
           <button
             type="button"
             onClick={() => onOpenKhetDetail(khet.id)}
-            className="px-3.5 py-2 rounded-xl bg-[var(--sk-card2)] hover:bg-[var(--sk-card3)] border border-[var(--sk-border)] text-[var(--sk-text)] text-xs font-bold transition flex items-center gap-1 cursor-pointer active:scale-95"
+            className="flex-1 sm:flex-initial justify-center px-3.5 py-2 rounded-xl bg-[var(--sk-card2)] hover:bg-[var(--sk-card3)] border border-[var(--sk-border)] text-[var(--sk-text)] text-xs font-bold transition flex items-center gap-1 cursor-pointer active:scale-95"
           >
             <span>{isHi ? 'खाता विवरण' : 'Ledger'}</span>
             <ArrowRight size={14} />
           </button>
+
+          {onDeleteKhet && (
+            <button
+              type="button"
+              onClick={() => onDeleteKhet(khet)}
+              className="px-2.5 py-2 rounded-xl border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-500 text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer active:scale-95"
+              title={isHi ? `खेत "${khet.name}" हटाएं` : `Delete Field "${khet.name}"`}
+            >
+              <Trash2 size={14} />
+              <span>{isHi ? 'हटाएं' : 'Delete'}</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -218,7 +235,19 @@ export function KhetCardView({
                       </div>
                     </div>
                   </div>
-                  <div>{getStatusBadge(crop.status)}</div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <div>{getStatusBadge(crop.status)}</div>
+                    {onDeleteCrop && displayCrops.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => onDeleteCrop(khet, crop)}
+                        className="p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition cursor-pointer"
+                        title={isHi ? `फसल "${cropLabel(lang, crop.cropName)}" हटाएं` : `Delete crop "${crop.cropName}"`}
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 bg-[var(--sk-card2)] p-2 rounded-lg text-center text-xs border border-[var(--sk-border)]">
@@ -246,11 +275,11 @@ export function KhetCardView({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-4 gap-1.5 pt-1 border-t border-[var(--sk-border)]">
+                <div className="grid grid-cols-4 gap-1.5 pt-1.5 border-t border-[var(--sk-border)]">
                   <button
                     type="button"
                     onClick={() => onOpenKhetDetail(khet.id, crop.cropName)}
-                    className="py-2 px-1 rounded-lg border border-[var(--sk-border)] bg-[var(--sk-card2)] hover:bg-[var(--sk-card3)] text-[var(--sk-text)] text-[11px] font-semibold flex flex-col items-center justify-center gap-1 transition active:scale-95 cursor-pointer"
+                    className="min-h-[42px] py-1.5 px-1 rounded-xl border border-[var(--sk-border)] bg-[var(--sk-card2)] hover:bg-[var(--sk-card3)] text-[var(--sk-text)] text-[11px] font-semibold flex flex-col items-center justify-center gap-0.5 transition active:scale-95 cursor-pointer"
                   >
                     <Eye size={14} className="text-emerald-500" />
                     <span>{isHi ? 'विवरण' : 'View'}</span>
@@ -259,7 +288,7 @@ export function KhetCardView({
                   <button
                     type="button"
                     onClick={() => onAddExpenseForCrop(khet, crop)}
-                    className="py-2 px-1 rounded-lg border border-[var(--sk-border)] bg-[var(--sk-card2)] hover:bg-[var(--sk-card3)] text-[var(--sk-text)] text-[11px] font-semibold flex flex-col items-center justify-center gap-1 transition active:scale-95 cursor-pointer"
+                    className="min-h-[42px] py-1.5 px-1 rounded-xl border border-[var(--sk-border)] bg-[var(--sk-card2)] hover:bg-[var(--sk-card3)] text-[var(--sk-text)] text-[11px] font-semibold flex flex-col items-center justify-center gap-0.5 transition active:scale-95 cursor-pointer"
                   >
                     <TrendingDown size={14} className="text-red-500" />
                     <span>{isHi ? '+ खर्च' : '+ Cost'}</span>
@@ -268,7 +297,7 @@ export function KhetCardView({
                   <button
                     type="button"
                     onClick={() => onAddHarvestForCrop(khet, crop)}
-                    className="py-2 px-1 rounded-lg border border-[var(--sk-border)] bg-[var(--sk-card2)] hover:bg-[var(--sk-card3)] text-[var(--sk-text)] text-[11px] font-semibold flex flex-col items-center justify-center gap-1 transition active:scale-95 cursor-pointer"
+                    className="min-h-[42px] py-1.5 px-1 rounded-xl border border-[var(--sk-border)] bg-[var(--sk-card2)] hover:bg-[var(--sk-card3)] text-[var(--sk-text)] text-[11px] font-semibold flex flex-col items-center justify-center gap-0.5 transition active:scale-95 cursor-pointer"
                   >
                     <Warehouse size={14} className="text-cyan-500" />
                     <span>{isHi ? '+ कटाई' : '+ Yield'}</span>
@@ -277,7 +306,7 @@ export function KhetCardView({
                   <button
                     type="button"
                     onClick={() => onAddSaleForCrop(khet, crop)}
-                    className="py-2 px-1 rounded-lg border border-[var(--sk-border)] bg-[var(--sk-card2)] hover:bg-[var(--sk-card3)] text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold flex flex-col items-center justify-center gap-1 transition active:scale-95 cursor-pointer"
+                    className="min-h-[42px] py-1.5 px-1 rounded-xl border border-[var(--sk-border)] bg-[var(--sk-card2)] hover:bg-[var(--sk-card3)] text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold flex flex-col items-center justify-center gap-0.5 transition active:scale-95 cursor-pointer"
                   >
                     <TrendingUp size={14} className="text-emerald-500" />
                     <span>{isHi ? '+ बिक्री' : '+ Sale'}</span>

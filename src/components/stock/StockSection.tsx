@@ -233,14 +233,14 @@ export function StockSection({ lang, onNavigateToSale }: StockSectionProps) {
       {/* Add Stock Modal */}
       {showAddModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-3 sm:p-4 backdrop-blur-sm"
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) setShowAddModal(false);
           }}
         >
           <form
             onSubmit={handleAddStock}
-            className="w-full max-w-md rounded-2xl border border-[var(--sk-border)] bg-[var(--sk-card)] p-5 shadow-2xl space-y-4"
+            className="w-full max-w-md max-h-[92vh] overflow-y-auto rounded-2xl border border-[var(--sk-border)] bg-[var(--sk-card)] p-4 sm:p-5 shadow-2xl space-y-4"
           >
             <div className="flex items-center justify-between border-b border-[var(--sk-border)] pb-3">
               <h3 className="font-bold text-sm text-[var(--sk-text)] flex items-center gap-2">

@@ -37,6 +37,7 @@ import {
   calculatePerLandMetrics,
 } from '../../lib/landMeasurement';
 import { LandSettingsModal } from './LandSettingsModal';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 
 interface KhetDetailProps {
   lang: Lang;
@@ -87,6 +88,7 @@ export function KhetDetail({
   });
   const [editKhetError, setEditKhetError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState<FarmRecord | null>(null);
 
   const allFieldRecords = useMemo(() => {
     return records.filter(
@@ -230,6 +232,15 @@ export function KhetDetail({
             <Plus size={16} />
             {isHi ? '+ खर्च/उपज/बिक्री' : '+ Add Entry'}
           </button>
+          <button
+            type="button"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 px-2.5 py-2 text-xs font-bold text-red-500 transition active:scale-95 cursor-pointer shadow-sm"
+            title={isHi ? 'यह खेत और इसका खाता हटाएं' : 'Delete Field Ledger'}
+          >
+            <Trash2 size={14} />
+            <span>{isHi ? 'खेत हटाएं' : 'Delete Field'}</span>
+          </button>
         </div>
       </div>
 
@@ -371,8 +382,9 @@ export function KhetDetail({
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleDelete(record.id)}
+                      onClick={() => setRecordToDelete(record)}
                       className="p-1 rounded text-red-400 hover:bg-red-500/10 cursor-pointer"
+                      title={isHi ? 'प्रविष्टि हटाएं' : 'Delete Entry'}
                     >
                       <Trash2 size={13} />
                     </button>
@@ -416,6 +428,46 @@ export function KhetDetail({
         khets={[khet]}
         khetCrops={khetCrops.filter((c) => c.khetId === khet.id)}
         selectedKhetId={khet.id}
+      />
+
+      {/* CONFIRM DELETE KHET MODAL */}
+      <ConfirmDeleteModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={() => {
+          setShowDeleteConfirm(false);
+          onDeleteKhet();
+        }}
+        title={isHi ? `खेत "${khet.name}" हटाएं?` : `Delete Field "${khet.name}"?`}
+        message={
+          isHi
+            ? `क्या आप वाकई "${khet.name}" और इसका पूरा खाता हटाना चाहते हैं? यह खेत और इससे जुड़े सभी खर्च, उपज और बिक्री के रिकॉर्ड हटा दिए जाएंगे।`
+            : `Are you sure you want to delete "${khet.name}" and all associated farm records?`
+        }
+        confirmText={isHi ? 'हाँ, खेत हटाएं' : 'Delete Field'}
+        cancelText={isHi ? 'रद्द करें' : 'Cancel'}
+      />
+
+      {/* CONFIRM DELETE RECORD MODAL */}
+      <ConfirmDeleteModal
+        isOpen={!!recordToDelete}
+        onClose={() => setRecordToDelete(null)}
+        onConfirm={() => {
+          if (recordToDelete) {
+            handleDelete(recordToDelete.id);
+            setRecordToDelete(null);
+          }
+        }}
+        title={isHi ? 'प्रविष्टि हटाएं?' : 'Delete Entry?'}
+        message={
+          isHi
+            ? `क्या आप वाकई ${recordToDelete?.date} की यह ${
+                recordToDelete?.type === 'Expense' ? 'खर्च' : recordToDelete?.type === 'Sale' ? 'बिक्री' : 'उपज'
+              } प्रविष्टि हटाना चाहते हैं?`
+            : `Are you sure you want to delete this ${recordToDelete?.type} entry?`
+        }
+        confirmText={isHi ? 'हाँ, हटाएं' : 'Delete'}
+        cancelText={isHi ? 'रद्द करें' : 'Cancel'}
       />
     </div>
   );

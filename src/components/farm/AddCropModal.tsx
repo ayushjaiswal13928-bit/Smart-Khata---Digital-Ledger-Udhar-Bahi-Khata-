@@ -79,9 +79,9 @@ export function AddCropModal({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4"
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4"
     >
-      <div className="bg-[var(--sk-card)] border border-[var(--sk-border)] rounded-t-3xl sm:rounded-2xl w-full max-w-lg max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+      <div className="bg-[var(--sk-card)] border border-[var(--sk-border)] rounded-t-3xl sm:rounded-2xl w-full max-w-lg max-h-[92vh] flex flex-col shadow-2xl overflow-hidden pb-[calc(env(safe-area-inset-bottom)+0.5rem)] sm:pb-0">
         <div className="w-12 h-1 bg-[var(--sk-border)] rounded-full mx-auto mt-2.5 mb-1 sm:hidden shrink-0" />
 
         {/* Modal Header */}

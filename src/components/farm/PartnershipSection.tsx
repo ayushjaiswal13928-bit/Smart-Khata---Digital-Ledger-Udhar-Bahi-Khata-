@@ -19,11 +19,12 @@ import {
   FileText,
   Sparkles,
   Pencil,
+  Download,
 } from 'lucide-react';
 import { Partner, PartnerCashEntry, FarmRecord, Lang, Khet } from '../../lib/types';
 import { fmt, formatDate } from '../../lib/utils';
 import { FormCard } from '../common/UI';
-import { printFinancialReport } from '../../lib/pdfExport';
+import { printFinancialReport, downloadFinancialReportPdf } from '../../lib/pdfExport';
 import { generatePartnerWhatsAppSummary } from '../../lib/whatsappSharing';
 import { WhatsAppShareModal } from './WhatsAppShareModal';
 import { calculateBataiSettlement, getRelationshipLabel } from '../../lib/bataiLogic';
@@ -182,6 +183,8 @@ export function PartnershipSection({
     });
   };
 
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
   const confirmDeletePartner = () => {
     if (!partnerToDelete) return;
     const targetId = partnerToDelete.id;
@@ -189,6 +192,11 @@ export function PartnershipSection({
     setPartners(updated);
     if (typeof window !== 'undefined') {
       localStorage.setItem('sk-partners', JSON.stringify(updated));
+    }
+    const updatedCash = partnerCash.filter((entry) => entry.partnerId !== targetId);
+    setPartnerCash(updatedCash);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sk-partner-cash', JSON.stringify(updatedCash));
     }
     if (selectedPartnerId === targetId) {
       setSelectedPartnerId(updated[0]?.id || '');
@@ -205,6 +213,79 @@ export function PartnershipSection({
       localStorage.setItem('sk-partner-cash', JSON.stringify(updated));
     }
     setCashToDelete(null);
+  };
+
+  const confirmDeleteRecord = () => {
+    if (!recordToDelete) return;
+    if (onDeleteRecord) {
+      onDeleteRecord(recordToDelete.id);
+    }
+    setRecordToDelete(null);
+  };
+
+  const downloadPdfStatement = async () => {
+    if (!activePartner || isDownloadingPdf) return;
+    try {
+      setIsDownloadingPdf(true);
+      const partnerCashEntries = partnerCash.filter((c) => c.partnerId === activePartner.id);
+      const balanceText =
+        settlement.netBalance > 0
+          ? `साझीदार से लेने हैं: ₹${settlement.netBalance.toLocaleString('en-IN')}`
+          : settlement.netBalance < 0
+          ? `साझीदार को देने हैं: ₹${Math.abs(settlement.netBalance).toLocaleString('en-IN')}`
+          : 'हिसाब चुकता (₹0)';
+
+      await downloadFinancialReportPdf(
+        {
+          title: `बटाई हिसाब पर्चा - ${activePartner.name}`,
+          subtitle: `${getRelationshipLabel(activePartner.relationship, 'hi')} (${activePartner.sharePercent}% हिस्सा) | खेत: ${activePartner.khetName || 'साझा खेत'}`,
+          lang: lang === 'hi' ? 'hi' : 'en',
+          summaryCards: [
+            {
+              label: 'कुल खेती खर्च',
+              value: fmt(settlement.totalExpense),
+              color: '#dc2626',
+            },
+            {
+              label: `साझीदार का खर्च (${settlement.costSharePercent}%)`,
+              value: fmt(settlement.partnerCostShare),
+              color: '#d97706',
+            },
+            {
+              label: 'कुल फसल बिक्री',
+              value: fmt(settlement.totalSales),
+              color: '#16a34a',
+            },
+            {
+              label: `साझीदार का बिक्री हिस्सा (${settlement.partnerSharePercent}%)`,
+              value: fmt(settlement.partnerSalesShare),
+              color: '#2563eb',
+            },
+            {
+              label: 'अंतिम शुद्ध फैसला',
+              value: balanceText,
+              color: settlement.netBalance >= 0 ? '#16a34a' : '#dc2626',
+            },
+          ],
+          tableHeaders: ['दिनांक', 'प्रकार', 'विवरण / माध्यम', 'रकम (₹)'],
+          tableRows: partnerCashEntries.map((c) => ({
+            cells: [
+              formatDate(c.date),
+              c.type === 'gave_to_partner' ? 'साझीदार को नकद दिया (Advance)' : 'साझीदार से नकद मिला (Received)',
+              `${c.note || '-'} (${c.mode === 'cash' ? 'नकद' : 'ऑनलाइन'})`,
+              fmt(c.amount),
+            ],
+          })),
+          footerNotes: `प्रमाणित दिनांक: ${new Date().toLocaleDateString('hi-IN')} | स्मार्ट खाता डिजिटल कृषि बहीखाता`,
+        },
+        `batai-hisaab-${activePartner.name.replace(/[/\\?%*:|"<> ]/g, '-')}`
+      );
+    } catch (err) {
+      console.error('Error generating partner PDF:', err);
+      printStatement();
+    } finally {
+      setIsDownloadingPdf(false);
+    }
   };
 
   const printStatement = () => {
@@ -379,50 +460,63 @@ export function PartnershipSection({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={() => setShowCashEntryModal(true)}
-                  className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition cursor-pointer flex items-center gap-1.5"
+                  className="w-full sm:w-auto justify-center min-h-[38px] px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition active:scale-95 cursor-pointer flex items-center gap-1.5"
                 >
-                  <ArrowRightLeft size={14} />
+                  <ArrowRightLeft size={15} />
                   <span>{isHi ? 'नकद पेशगी / लेनदेन' : 'Record Cash'}</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowExplainerModal(true)}
-                  className="px-3 py-2 rounded-xl border border-[var(--sk-border)] bg-[var(--sk-card)] hover:bg-[var(--sk-card2)] text-[var(--sk-text)] text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
-                  title="हिसाब का गणित समझें"
-                >
-                  <HelpCircle size={14} className="text-emerald-500" />
-                  <span>{isHi ? 'हिसाब का गणित' : 'Logic'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowWhatsAppModal(true)}
-                  className="px-3 py-2 rounded-xl border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 hover:bg-emerald-500/25 text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 shadow-sm"
-                  title="WhatsApp शेयर"
-                >
-                  <Share2 size={14} className="text-emerald-500" />
-                  <span>WhatsApp</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={printStatement}
-                  className="px-3 py-2 rounded-xl border border-purple-500/40 text-purple-700 dark:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
-                  title="PDF पर्चा प्रिंट करें"
-                >
-                  <Printer size={14} />
-                  <span className="hidden sm:inline">प्रिंट</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDeletePartner(activePartner.id)}
-                  className="p-2 rounded-xl text-red-500 hover:bg-red-500/10 transition cursor-pointer"
-                  title="Delete Partner"
-                >
-                  <Trash2 size={16} />
-                </button>
+                <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap w-full sm:w-auto max-w-full">
+                  <button
+                    type="button"
+                    onClick={() => setShowExplainerModal(true)}
+                    className="min-h-[36px] px-2 sm:px-3 py-1.5 rounded-xl border border-[var(--sk-border)] bg-[var(--sk-card)] hover:bg-[var(--sk-card2)] text-[var(--sk-text)] text-xs font-semibold transition active:scale-95 cursor-pointer flex items-center justify-center gap-1 flex-1 sm:flex-initial min-w-0"
+                    title="हिसाब का गणित समझें"
+                  >
+                    <HelpCircle size={14} className="text-emerald-500 shrink-0" />
+                    <span className="truncate">{isHi ? 'गणित' : 'Logic'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowWhatsAppModal(true)}
+                    className="min-h-[36px] px-2 sm:px-3 py-1.5 rounded-xl border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 hover:bg-emerald-500/25 text-xs font-semibold transition active:scale-95 cursor-pointer flex items-center justify-center gap-1 shadow-sm flex-1 sm:flex-initial min-w-0"
+                    title="WhatsApp शेयर"
+                  >
+                    <Share2 size={14} className="text-emerald-500 shrink-0" />
+                    <span className="truncate">WhatsApp</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={downloadPdfStatement}
+                    disabled={isDownloadingPdf}
+                    className="min-h-[36px] px-2 sm:px-3 py-1.5 rounded-xl border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 text-xs font-bold transition active:scale-95 cursor-pointer flex items-center justify-center gap-1 shadow-sm flex-1 sm:flex-initial min-w-0"
+                    title={isHi ? 'बटाई हिसाब PDF पर्चा डाउनलोड करें' : 'Download Batai PDF Statement'}
+                  >
+                    <Download size={14} className="shrink-0" />
+                    <span className="truncate">{isDownloadingPdf ? (isHi ? '...' : '...') : 'PDF'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={printStatement}
+                    className="min-h-[36px] px-2 sm:px-3 py-1.5 rounded-xl border border-purple-500/40 text-purple-700 dark:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 text-xs font-semibold transition active:scale-95 cursor-pointer flex items-center justify-center gap-1 flex-1 sm:flex-initial min-w-0"
+                    title="PDF पर्चा प्रिंट करें"
+                  >
+                    <Printer size={14} className="shrink-0" />
+                    <span className="truncate">{isHi ? 'प्रिंट' : 'Print'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPartnerToDelete(activePartner)}
+                    className="min-h-[36px] px-2 sm:px-3 py-1.5 rounded-xl text-red-500 hover:bg-red-500/10 border border-red-500/30 transition active:scale-95 cursor-pointer flex items-center justify-center gap-1 flex-1 sm:flex-initial min-w-0"
+                    title={isHi ? 'साझीदार हटाएं' : 'Delete Partner'}
+                  >
+                    <Trash2 size={14} className="shrink-0" />
+                    <span className="truncate text-xs font-semibold">{isHi ? 'हटाएं' : 'Delete'}</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -777,25 +871,48 @@ export function PartnershipSection({
                           </div>
                         </div>
 
-                        <div className="text-right shrink-0">
-                          {isYield ? (
-                            <div className="font-mono font-bold text-sm text-cyan-600 dark:text-cyan-400">
-                              {r.quantity} {r.unit || 'Qtl'}
-                            </div>
-                          ) : (
-                            <div
-                              className={`font-mono font-bold text-sm ${
-                                isSale ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'
-                              }`}
+                        <div className="flex items-center gap-2.5 self-end sm:self-center shrink-0">
+                          <div className="text-right">
+                            {isYield ? (
+                              <div className="font-mono font-bold text-sm text-cyan-600 dark:text-cyan-400">
+                                {r.quantity} {r.unit || 'Qtl'}
+                              </div>
+                            ) : (
+                              <div
+                                className={`font-mono font-bold text-sm ${
+                                  isSale ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'
+                                }`}
+                              >
+                                {isSale ? '+' : '-'} ₹{amt.toLocaleString('en-IN')}
+                              </div>
+                            )}
+                            {!isYield && (
+                              <div className="text-[10px] text-[var(--sk-muted)] font-mono mt-0.5">
+                                {isHi ? 'साझीदार हिस्सा:' : 'Partner share:'} ₹{partnerShareCalc.toLocaleString('en-IN')}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-1 pl-2 border-l border-[var(--sk-border)]">
+                            {onEditRecord && (
+                              <button
+                                type="button"
+                                onClick={() => onEditRecord(r)}
+                                className="p-1.5 rounded-lg text-blue-500 hover:bg-blue-500/10 transition cursor-pointer"
+                                title={isHi ? 'रिकॉर्ड बदलें' : 'Edit'}
+                              >
+                                <Pencil size={13} />
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => setRecordToDelete(r)}
+                              className="p-1.5 rounded-lg text-red-500 hover:bg-red-500/10 transition cursor-pointer"
+                              title={isHi ? 'रिकॉर्ड हटाएं' : 'Delete'}
                             >
-                              {isSale ? '+' : '-'} ₹{amt.toLocaleString('en-IN')}
-                            </div>
-                          )}
-                          {!isYield && (
-                            <div className="text-[10px] text-[var(--sk-muted)] font-mono mt-0.5">
-                              {isHi ? 'साझीदार हिस्सा:' : 'Partner share:'} ₹{partnerShareCalc.toLocaleString('en-IN')}
-                            </div>
-                          )}
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     );
@@ -894,7 +1011,7 @@ export function PartnershipSection({
                             </div>
                             <button
                               type="button"
-                              onClick={() => handleDeleteCash(entry.id)}
+                              onClick={() => setCashToDelete(entry)}
                               className="p-1 rounded text-red-500 hover:bg-red-500/10 cursor-pointer"
                             >
                               <Trash2 size={13} />
@@ -919,14 +1036,14 @@ export function PartnershipSection({
       {/* ADD PARTNER MODAL */}
       {showAddPartnerModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-3 sm:p-4 backdrop-blur-sm"
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) setShowAddPartnerModal(false);
           }}
         >
           <form
             onSubmit={handleSavePartner}
-            className="w-full max-w-md rounded-2xl border border-[var(--sk-border)] bg-[var(--sk-card)] p-5 shadow-2xl space-y-4"
+            className="w-full max-w-md max-h-[92vh] overflow-y-auto rounded-2xl border border-[var(--sk-border)] bg-[var(--sk-card)] p-4 sm:p-5 shadow-2xl space-y-4"
           >
             <div className="flex items-center justify-between border-b border-[var(--sk-border)] pb-3">
               <h2 className="text-base font-bold text-[var(--sk-text)] flex items-center gap-2">
@@ -1149,14 +1266,14 @@ export function PartnershipSection({
       {/* ADD CASH ENTRY MODAL */}
       {showCashEntryModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-3 sm:p-4 backdrop-blur-sm"
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) setShowCashEntryModal(false);
           }}
         >
           <form
             onSubmit={handleSaveCashEntry}
-            className="w-full max-w-md rounded-2xl border border-[var(--sk-border)] bg-[var(--sk-card)] p-5 shadow-2xl space-y-4"
+            className="w-full max-w-md max-h-[92vh] overflow-y-auto rounded-2xl border border-[var(--sk-border)] bg-[var(--sk-card)] p-4 sm:p-5 shadow-2xl space-y-4"
           >
             <div className="flex items-center justify-between border-b border-[var(--sk-border)] pb-3">
               <h2 className="text-base font-bold text-[var(--sk-text)] flex items-center gap-2">
@@ -1321,6 +1438,51 @@ export function PartnershipSection({
           }`}
         />
       )}
+
+      {/* CONFIRM DELETE PARTNER MODAL */}
+      <ConfirmDeleteModal
+        isOpen={!!partnerToDelete}
+        onClose={() => setPartnerToDelete(null)}
+        onConfirm={confirmDeletePartner}
+        title={isHi ? `साझीदार "${partnerToDelete?.name}" हटाएं?` : `Delete Partner "${partnerToDelete?.name}"?`}
+        message={
+          isHi
+            ? `क्या आप वाकई "${partnerToDelete?.name}" को हटाना चाहते हैं? यह बटाईदार और इनसे जुड़े सभी नकद पेशगी रिकॉर्ड हटा दिए जाएंगे।`
+            : `Are you sure you want to delete "${partnerToDelete?.name}" and all their cash advance records?`
+        }
+        confirmText={isHi ? 'हाँ, साझीदार हटाएं' : 'Delete Partner'}
+        cancelText={isHi ? 'रद्द करें' : 'Cancel'}
+      />
+
+      {/* CONFIRM DELETE CASH ENTRY MODAL */}
+      <ConfirmDeleteModal
+        isOpen={!!cashToDelete}
+        onClose={() => setCashToDelete(null)}
+        onConfirm={confirmDeleteCash}
+        title={isHi ? 'नकद प्रविष्टि हटाएं?' : 'Delete Cash Entry?'}
+        message={
+          isHi
+            ? `क्या आप वाकई ₹${cashToDelete?.amount?.toLocaleString('en-IN')} की यह प्रविष्टि हटाना चाहते हैं?`
+            : `Are you sure you want to delete this cash entry of ₹${cashToDelete?.amount}?`
+        }
+        confirmText={isHi ? 'हाँ, हटाएं' : 'Delete'}
+        cancelText={isHi ? 'रद्द करें' : 'Cancel'}
+      />
+
+      {/* CONFIRM DELETE RECORD MODAL */}
+      <ConfirmDeleteModal
+        isOpen={!!recordToDelete}
+        onClose={() => setRecordToDelete(null)}
+        onConfirm={confirmDeleteRecord}
+        title={isHi ? 'खेत प्रविष्टि हटाएं?' : 'Delete Record?'}
+        message={
+          isHi
+            ? `क्या आप वाकई "${recordToDelete?.crop || 'फसल'}" का यह रिकॉर्ड हटाना चाहते हैं?`
+            : `Are you sure you want to delete this record?`
+        }
+        confirmText={isHi ? 'हाँ, हटाएं' : 'Delete'}
+        cancelText={isHi ? 'रद्द करें' : 'Cancel'}
+      />
     </div>
   );
 }

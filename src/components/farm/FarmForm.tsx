@@ -558,36 +558,35 @@ export function FarmForm({
   const dualArea = areaNum > 0 ? formatDualArea(areaNum, form.areaUnit, landSettings, lang) : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-[var(--sk-card)] border border-[var(--sk-border)] rounded-t-3xl sm:rounded-2xl w-full max-w-2xl max-h-[94vh] flex flex-col shadow-2xl overflow-hidden">
-        {/* Mobile Grab Handle */}
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-[var(--sk-card)] border border-[var(--sk-border)] rounded-t-3xl sm:rounded-2xl w-full max-w-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col shadow-2xl overflow-hidden pb-[calc(env(safe-area-inset-bottom)+0.5rem)] sm:pb-0">
         {/* Mobile Grab Handle */}
         <div className="w-12 h-1 bg-[var(--sk-border)] rounded-full mx-auto mt-2.5 mb-1 sm:hidden shrink-0" />
 
         {/* Header */}
-        <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-[var(--sk-border)] flex items-center justify-between bg-[var(--sk-card2)]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500">
-              <Wheat className="w-5 h-5" />
+        <div className="px-3.5 sm:px-5 py-2.5 sm:py-3.5 border-b border-[var(--sk-border)] flex items-center justify-between gap-2 bg-[var(--sk-card2)]">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shrink-0">
+              <Wheat className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <h2 className="text-sm sm:text-base font-bold text-[var(--sk-text)] flex items-center gap-2">
+            <div className="min-w-0">
+              <h2 className="text-sm sm:text-base font-bold text-[var(--sk-text)] truncate">
                 {editingRecord
                   ? isHindi ? 'बहीखाता रिकॉर्ड संपादित करें' : 'Edit Farm Record'
                   : isHindi ? 'नया हिसाब दर्ज करें' : 'Add Farm Record'}
               </h2>
-              <p className="text-xs text-[var(--sk-muted)]">
+              <p className="text-[11px] sm:text-xs text-[var(--sk-muted)] truncate hidden xs:block">
                 {isHindi
-                  ? 'लागत खर्च, पैदावार या फसल बिक्री का तुरंत हिसाब जोड़ें'
-                  : 'Input expense, harvest yield or crop sale with live profit tracking'}
+                  ? 'लागत खर्च, पैदावार या फसल बिक्री का हिसाब'
+                  : 'Input expense, harvest yield or crop sale'}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
               onClick={toggleVoiceRecognition}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm ${
                 isListening
                   ? 'bg-red-500 text-white animate-pulse'
                   : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30'
@@ -596,20 +595,20 @@ export function FarmForm({
             >
               {isListening ? (
                 <>
-                  <MicOff className="w-4 h-4 text-white" />
-                  <span>सुन रहा हूँ...</span>
+                  <MicOff className="w-3.5 h-3.5 text-white" />
+                  <span className="text-[11px]">सुन रहा हूँ...</span>
                 </>
               ) : (
                 <>
-                  <Mic className="w-4 h-4 text-emerald-500" />
-                  <span>बोलकर लिखें</span>
+                  <Mic className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="text-[11px] hidden xs:inline">{isHindi ? 'बोलकर लिखें' : 'Voice'}</span>
                 </>
               )}
             </button>
             <button
               type="button"
               onClick={onCancel}
-              className="p-1.5 rounded-lg text-[var(--sk-muted)] hover:text-[var(--sk-text)] hover:bg-[var(--sk-card3)] transition cursor-pointer"
+              className="p-1.5 rounded-xl text-[var(--sk-muted)] hover:text-[var(--sk-text)] hover:bg-[var(--sk-card3)] transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -617,16 +616,16 @@ export function FarmForm({
         </div>
 
         {voiceFeedback && (
-          <div className="px-5 py-2.5 bg-gradient-to-r from-emerald-950 to-slate-900 border-b border-emerald-500/30 text-emerald-300 text-xs flex items-center justify-between gap-2 animate-in fade-in">
+          <div className="px-3.5 sm:px-5 py-2 bg-gradient-to-r from-emerald-950 to-slate-900 border-b border-emerald-500/30 text-emerald-300 text-xs flex items-center justify-between gap-2 animate-in fade-in">
             <div className="flex items-center gap-2">
               <Volume2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span className="font-medium">{voiceFeedback}</span>
+              <span className="font-medium text-[11px] sm:text-xs truncate">{voiceFeedback}</span>
             </div>
           </div>
         )}
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-3.5 sm:space-y-4">
           {error && (
             <div className="p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-xs flex items-center gap-2 animate-in fade-in">
               <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />

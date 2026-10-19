@@ -28,6 +28,9 @@ export interface FarmRecord {
   saleReceivedBy?: 'me' | 'partner' | 'shared';
   partnerId?: string;
   paidBy?: 'me' | 'partner' | 'shared';
+  // Actual amounts paid for shared expenses
+  ownerPaidAmount?: number;
+  partnerPaidAmount?: number;
   partnerSharePercent?: number;
   ratePerQuintal?: number;
 }
@@ -85,6 +88,7 @@ export interface PartnerCashEntry {
   purpose?: 'advance' | 'settlement' | 'loan' | 'other';
   amount: number;
   mode?: 'cash' | 'online' | 'bank';
+  alreadyRecordedInFarmRecords?: boolean;
   note?: string;
 }
 

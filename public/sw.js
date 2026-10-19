@@ -1,18 +1,83 @@
 // Service Worker for Smart Khata PWA
-const CACHE_NAME = 'smart-khata-v1';
+const CACHE_NAME = 'smart-khata-v2';
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/manifest.webmanifest',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/maskable.png',
+  '/apple-touch-icon.png',
+];
 
 self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(STATIC_ASSETS).catch((err) => {
+        console.warn('Precache partial fail:', err);
+      });
+    })
+  );
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+      );
+    }).then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener('fetch', (event) => {
-  // Let network handle by default, fall back to cache when offline
   if (event.request.method !== 'GET') return;
+
+  const url = new URL(event.request.url);
+
+  // Network first for HTML navigation, falling back to cache
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((res) => {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          return res;
+        })
+        .catch(async () => {
+          const cachedIndex = await caches.match('/index.html') || await caches.match('/');
+          if (cachedIndex) return cachedIndex;
+          return new Response('Offline', { status: 503, statusText: 'Offline' });
+        })
+    );
+    return;
+  }
+
+  // Cache first with network fallback for other resources
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+    caches.match(event.request).then((cached) => {
+      if (cached) return cached;
+      return fetch(event.request)
+        .then((res) => {
+          if (
+            res.status === 200 &&
+            (url.origin === location.origin ||
+              url.hostname.includes('googleapis') ||
+              url.hostname.includes('gstatic'))
+          ) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return res;
+        })
+        .catch(() => {
+          if (event.request.destination === 'image') {
+            return caches.match('/icon-192.png');
+          }
+          return new Response('Offline', { status: 503, statusText: 'Offline' });
+        });
+    })
   );
 });

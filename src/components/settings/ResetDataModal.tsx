@@ -36,7 +36,7 @@ export function ResetDataModal({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in"
     >
       <div
         className="w-full max-w-md rounded-2xl border border-red-500/40 bg-[var(--sk-card)] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"

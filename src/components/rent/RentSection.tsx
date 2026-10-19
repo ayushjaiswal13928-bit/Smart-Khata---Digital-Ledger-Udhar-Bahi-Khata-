@@ -23,6 +23,7 @@ import { exportCsvFile, generateCsvString } from "../../lib/csvExport";
 import { printFinancialReport } from "../../lib/pdfExport";
 import { shareViaWhatsApp } from "../../lib/whatsappSharing";
 import { FormCard, StatusBadge } from "../common/UI";
+import { ConfirmDeleteModal } from "../common/ConfirmDeleteModal";
 
 interface RentSectionProps {
   records: RentRecord[];
@@ -95,6 +96,7 @@ export function RentSection({ records, setRecords, lang }: RentSectionProps) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"All" | RentStatus>("All");
   const [error, setError] = useState("");
+  const [rentToDelete, setRentToDelete] = useState<RentRecord | null>(null);
 
   const calculated = useMemo(() => calculateRentValues(form), [form]);
 
@@ -866,7 +868,7 @@ export function RentSection({ records, setRecords, lang }: RentSectionProps) {
 
                     <button
                       type="button"
-                      onClick={() => deleteRecord(record.id)}
+                      onClick={() => setRentToDelete(record)}
                       className="w-9 h-9 sm:w-8 sm:h-8 rounded-xl bg-red-500/10 border border-red-500/25 text-red-400 hover:bg-red-500/20 flex items-center justify-center cursor-pointer active:scale-95 transition"
                       title={isHi ? "हटाएं" : "Delete"}
                     >
@@ -879,6 +881,36 @@ export function RentSection({ records, setRecords, lang }: RentSectionProps) {
           })
         )}
       </div>
+
+      {/* CONFIRM DELETE MODAL */}
+      <ConfirmDeleteModal
+        isOpen={!!rentToDelete}
+        onClose={() => setRentToDelete(null)}
+        onConfirm={() => {
+          if (rentToDelete) {
+            deleteRecord(rentToDelete.id);
+            setRentToDelete(null);
+          }
+        }}
+        title={isHi ? "किराया रिकॉर्ड हटाएं?" : "Delete Rent Record?"}
+        message={
+          isHi
+            ? "क्या आप वाकई इस किरायेदार के रिकॉर्ड को हटाना चाहते हैं? यह प्रविष्टि हमेशा के लिए हट जाएगी।"
+            : "Are you sure you want to delete this tenant rent record?"
+        }
+        confirmText={isHi ? "हाँ, हटाएं" : "Delete"}
+        cancelText={isHi ? "रद्द करें" : "Cancel"}
+        itemDetails={
+          rentToDelete ? (
+            <div className="flex items-center justify-between text-xs font-semibold">
+              <span className="text-[var(--sk-text)]">
+                🏢 {rentToDelete.tenant} ({rentToDelete.month})
+              </span>
+              <span className="font-mono text-red-500 font-bold">{fmt(rentToDelete.total)}</span>
+            </div>
+          ) : null
+        }
+      />
     </div>
   );
 }

@@ -31,15 +31,19 @@ export function BataiSettlementExplainer({
   lang,
   settlement,
 }: BataiSettlementExplainerProps) {
-  if (!isOpen) return null;
   const isHi = lang === 'hi';
-  const [activeTab, setActiveTab] = useState<'audit' | 'rules' | 'example'>('audit');
+
+  const [activeTab, setActiveTab] = useState<
+    'audit' | 'rules' | 'example'
+  >('audit');
+
+  if (!isOpen) return null;
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
     >
       <div
         className="w-full max-w-2xl rounded-2xl border border-[var(--sk-border)] bg-[var(--sk-card)] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"

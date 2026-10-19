@@ -17,6 +17,7 @@ import {
   inputCls,
   selectCls,
 } from "../common/UI";
+import { ConfirmDeleteModal } from "../common/ConfirmDeleteModal";
 
 interface HomeSectionProps {
   records: HomeExpense[];
@@ -46,6 +47,7 @@ export function HomeSection({ records, setRecords, lang }: HomeSectionProps) {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [expenseToDelete, setExpenseToDelete] = useState<HomeExpense | null>(null);
 
   const categoryLabels = useMemo(
     () => ({
@@ -327,17 +329,19 @@ export function HomeSection({ records, setRecords, lang }: HomeSectionProps) {
                     <button
                       type="button"
                       onClick={() => startEdit(record)}
-                      className="w-7 h-7 flex items-center justify-center rounded-lg text-[var(--sk-muted)] hover:text-white hover:bg-white/5 cursor-pointer"
+                      className="w-9 h-9 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 hover:bg-blue-500/20 active:scale-95 transition cursor-pointer"
+                      title={isHi ? "संपादित करें" : "Edit"}
                     >
-                      <Pencil size={14} />
+                      <Pencil size={15} />
                     </button>
 
                     <button
                       type="button"
-                      onClick={() => onDelete(record.id)}
-                      className="w-7 h-7 flex items-center justify-center rounded-lg text-[var(--sk-muted)] hover:text-red-400 hover:bg-red-500/10 cursor-pointer"
+                      onClick={() => setExpenseToDelete(record)}
+                      className="w-9 h-9 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 active:scale-95 transition cursor-pointer"
+                      title={isHi ? "हटाएं" : "Delete"}
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={15} />
                     </button>
                   </div>
                 </div>
@@ -459,6 +463,38 @@ export function HomeSection({ records, setRecords, lang }: HomeSectionProps) {
           </div>
         </div>
       )}
+
+      {/* CONFIRM DELETE MODAL */}
+      <ConfirmDeleteModal
+        isOpen={!!expenseToDelete}
+        onClose={() => setExpenseToDelete(null)}
+        onConfirm={() => {
+          if (expenseToDelete) {
+            onDelete(expenseToDelete.id);
+            setExpenseToDelete(null);
+          }
+        }}
+        title={isHi ? "घरेलू खर्च हटाएं?" : "Delete Expense?"}
+        message={
+          isHi
+            ? "क्या आप वाकई इस खर्च को हटाना चाहते हैं? यह प्रविष्टि बहीखाते से हमेशा के लिए हट जाएगी।"
+            : "Are you sure you want to delete this expense entry?"
+        }
+        confirmText={isHi ? "हाँ, हटाएं" : "Delete"}
+        cancelText={isHi ? "रद्द करें" : "Cancel"}
+        itemDetails={
+          expenseToDelete ? (
+            <div className="flex items-center justify-between text-xs font-semibold">
+              <span className="text-[var(--sk-text)] flex items-center gap-1.5">
+                <span>{categoryIcons[expenseToDelete.category] || "📦"}</span>
+                <span>{categoryLabels[expenseToDelete.category as keyof typeof categoryLabels] || expenseToDelete.category}</span>
+                {expenseToDelete.note && <span className="text-[var(--sk-muted)] font-normal">({expenseToDelete.note})</span>}
+              </span>
+              <span className="font-mono text-red-500 font-bold">{fmt(expenseToDelete.amount)}</span>
+            </div>
+          ) : null
+        }
+      />
     </div>
   );
 }

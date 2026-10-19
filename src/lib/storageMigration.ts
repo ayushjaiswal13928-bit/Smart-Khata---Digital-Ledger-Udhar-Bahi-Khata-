@@ -141,52 +141,89 @@ export const DEFAULT_RECORDS: FarmRecord[] = [
   },
 ];
 
-export function loadAndMigrateKhets(): { khets: Khet[]; khetCrops: KhetCrop[] } {
+
+export function loadAndMigrateKhets(): {
+  khets: Khet[];
+  khetCrops: KhetCrop[];
+} {
+  // Server या browser उपलब्ध न होने पर खाली डेटा
   if (typeof window === 'undefined') {
-    return {
-      khets: DEFAULT_KHETS,
-      khetCrops: DEFAULT_KHETS.flatMap((k) => k.crops || []),
-    };
+    return { khets: [], khetCrops: [] };
   }
 
   try {
     const rawKhets = localStorage.getItem(KHETS_STORAGE_KEY);
+
+    // पहली बार ऐप खोलने पर डेमो खेत न जोड़ें
+    if (rawKhets === null) {
+      return { khets: [], khetCrops: [] };
+    }
+
+    const parsedKhets: unknown = JSON.parse(rawKhets);
+
+    if (!Array.isArray(parsedKhets)) {
+      return { khets: [], khetCrops: [] };
+    }
+
+    // सभी खेत डिलीट हो चुके हैं तो फसलें भी खाली रखें
+    if (parsedKhets.length === 0) {
+      return { khets: [], khetCrops: [] };
+    }
+
     const rawCrops = localStorage.getItem(CROPS_STORAGE_KEY);
 
-    if (rawKhets) {
-      const parsedKhets: Khet[] = JSON.parse(rawKhets);
-      const parsedCrops: KhetCrop[] = rawCrops ? JSON.parse(rawCrops) : [];
+    let parsedCrops: KhetCrop[] = [];
 
-      if (Array.isArray(parsedKhets) && parsedKhets.length > 0) {
-        return { khets: parsedKhets, khetCrops: parsedCrops };
+    if (rawCrops !== null) {
+      const value: unknown = JSON.parse(rawCrops);
+      if (Array.isArray(value)) {
+        parsedCrops = value as KhetCrop[];
       }
+    } else {
+      // पुराने डेटा में फसलें खेत के अंदर सेव हो सकती हैं
+      parsedCrops = (parsedKhets as Khet[]).flatMap(
+        (khet) => khet.crops || []
+      );
     }
-  } catch (err) {
-    console.error('Error loading khets from storage:', err);
-  }
 
-  return {
-    khets: DEFAULT_KHETS,
-    khetCrops: DEFAULT_KHETS.flatMap((k) => k.crops || []),
-  };
+    return {
+      khets: parsedKhets as Khet[],
+      khetCrops: parsedCrops,
+    };
+  } catch (error) {
+    console.error('Error loading khets from storage:', error);
+    return { khets: [], khetCrops: [] };
+  }
 }
 
-export function loadAndMigrateRecords(khets: Khet[], khetCrops: KhetCrop[]): FarmRecord[] {
-  if (typeof window === 'undefined') return DEFAULT_RECORDS;
+export function loadAndMigrateRecords(
+  _khets: Khet[],
+  _khetCrops: KhetCrop[]
+): FarmRecord[] {
+  if (typeof window === 'undefined') {
+    return [];
+  }
 
   try {
     const raw = localStorage.getItem(RECORDS_STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
-      }
-    }
-  } catch (err) {
-    console.error('Error loading records:', err);
-  }
 
-  return DEFAULT_RECORDS;
+    // रिकॉर्ड पहले कभी सेव नहीं हुए, तो खाली सूची दें
+    if (raw === null) {
+      return [];
+    }
+
+    const parsed: unknown = JSON.parse(raw);
+
+    // [] भी एक वैध और सेव की गई सूची है
+    if (Array.isArray(parsed)) {
+      return parsed as FarmRecord[];
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Error loading records:', error);
+    return [];
+  }
 }
 
 export function persistKhetsAndCrops(khets: Khet[], khetCrops: KhetCrop[]): void {

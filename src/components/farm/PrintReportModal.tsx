@@ -123,7 +123,7 @@ export function PrintReportModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm overflow-y-auto print:p-0 print:bg-white print:static">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm overflow-y-auto print:p-0 print:bg-white print:static">
       <div className="relative w-full max-w-4xl bg-[#0c1a13] border border-[#1e3c2c] rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden print:max-h-none print:border-none print:shadow-none print:bg-white print:w-full">
         {/* MODAL HEADER */}
         <div className="px-4 py-3 border-b border-[#1a3525] flex items-center justify-between bg-[#07130e] print:hidden">

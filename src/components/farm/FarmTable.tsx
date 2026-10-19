@@ -219,42 +219,42 @@ export function FarmTable({
             <span>{isHi ? 'प्रदर्शन शैली (View Mode):' : 'Display Style:'}</span>
           </span>
         </div>
-        <div className="flex items-center gap-1 bg-[var(--sk-card)] p-1 rounded-lg border border-[var(--sk-border)] text-xs">
+        <div className="grid grid-cols-3 sm:flex items-center gap-1 bg-[var(--sk-card)] p-1 rounded-xl border border-[var(--sk-border)] text-xs w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setViewMode('grouped')}
-            className={`px-3 py-1.5 rounded-md font-semibold transition flex items-center gap-1.5 cursor-pointer ${
+            className={`px-2 sm:px-3 py-2 sm:py-1.5 rounded-lg font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer text-center ${
               viewMode === 'grouped'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-[var(--sk-muted)] hover:text-[var(--sk-text)]'
             }`}
           >
-            <Layers size={13} />
-            <span>{isHi ? 'फसलवार फोल्डर' : 'Grouped by Crop'}</span>
+            <Layers size={13} className="shrink-0" />
+            <span className="truncate">{isHi ? 'फोल्डर' : 'Grouped'}</span>
           </button>
           <button
             type="button"
             onClick={() => setViewMode('cards')}
-            className={`px-3 py-1.5 rounded-md font-semibold transition flex items-center gap-1.5 cursor-pointer ${
+            className={`px-2 sm:px-3 py-2 sm:py-1.5 rounded-lg font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer text-center ${
               viewMode === 'cards'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-[var(--sk-muted)] hover:text-[var(--sk-text)]'
             }`}
           >
-            <LayoutGrid size={13} />
-            <span>{isHi ? 'कार्ड दृश्य' : 'Passbook Cards'}</span>
+            <LayoutGrid size={13} className="shrink-0" />
+            <span className="truncate">{isHi ? 'कार्ड' : 'Cards'}</span>
           </button>
           <button
             type="button"
             onClick={() => setViewMode('table')}
-            className={`px-3 py-1.5 rounded-md font-semibold transition flex items-center gap-1.5 cursor-pointer ${
+            className={`px-2 sm:px-3 py-2 sm:py-1.5 rounded-lg font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer text-center ${
               viewMode === 'table'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-[var(--sk-muted)] hover:text-[var(--sk-text)]'
             }`}
           >
-            <TableIcon size={13} />
-            <span>{isHi ? 'तालिका' : 'Full Table'}</span>
+            <TableIcon size={13} className="shrink-0" />
+            <span className="truncate">{isHi ? 'तालिका' : 'Table'}</span>
           </button>
         </div>
       </div>
@@ -312,7 +312,7 @@ export function FarmTable({
                     return (
                       <div
                         key={record.id}
-                        className="p-3 flex items-center justify-between gap-3 hover:bg-[var(--sk-card2)]/60 transition"
+                        className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 hover:bg-[var(--sk-card2)]/60 transition"
                       >
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -339,8 +339,8 @@ export function FarmTable({
                             {getDetails(record)}
                           </div>
                         </div>
-                        <div className="flex items-center gap-3 shrink-0">
-                          <div className="text-right">
+                        <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto shrink-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-[var(--sk-border)]/40">
+                          <div className="text-left sm:text-right">
                             <div className={`font-bold font-mono text-sm ${getAmountClass(record.type)}`}>
                               {record.type === 'Sale' ? '+' : record.type === 'Expense' ? '-' : ''}
                               {getAmount(record)}
@@ -351,7 +351,7 @@ export function FarmTable({
                               </div>
                             )}
                           </div>
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1.5">
                             <button
                               type="button"
                               onClick={() => {
@@ -451,18 +451,18 @@ export function FarmTable({
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => onEdit(record)}
-                      className="px-2 py-1 rounded-lg text-blue-500 hover:bg-blue-500/10 active:scale-95 transition text-[11px] font-semibold cursor-pointer"
+                      className="min-h-[36px] px-3 py-1.5 rounded-xl text-blue-600 dark:text-blue-400 bg-blue-500/15 hover:bg-blue-500/25 active:scale-95 transition text-xs font-bold cursor-pointer"
                     >
                       {isHi ? 'बदलें' : 'Edit'}
                     </button>
                     <button
                       type="button"
                       onClick={() => setRecordToDelete(record)}
-                      className="px-2 py-1 rounded-lg text-red-500 hover:bg-red-500/10 active:scale-95 transition text-[11px] font-semibold cursor-pointer"
+                      className="min-h-[36px] px-3 py-1.5 rounded-xl text-red-600 dark:text-red-400 bg-red-500/15 hover:bg-red-500/25 active:scale-95 transition text-xs font-bold cursor-pointer"
                     >
                       {isHi ? 'हटाएं' : 'Delete'}
                     </button>

@@ -34,6 +34,7 @@ import { PrintReportModal } from './PrintReportModal';
 import { PartnershipSection } from './PartnershipSection';
 import { StockSection } from '../stock/StockSection';
 import { exportToExcel } from '../../lib/excelExport';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import {
   loadAndMigrateKhets,
   loadAndMigrateRecords,
@@ -357,11 +358,44 @@ export function FarmSection({
     setShowAddKhet(false);
   };
 
+  const [khetToDelete, setKhetToDelete] = useState<Khet | null>(null);
+  const [cropToDelete, setCropToDelete] = useState<{ khet: Khet; crop: KhetCrop } | null>(null);
+
   const deleteKhet = (khet: Khet) => {
     const updatedKhets = khets.filter((k) => k.id !== khet.id);
     const updatedCrops = khetCrops.filter((c) => c.khetId !== khet.id);
     saveKhetsAndCropsToStorage(updatedKhets, updatedCrops);
+    setRecords((cur) =>
+      cur.filter(
+        (r) =>
+          r.khetId !== khet.id &&
+          (r.field || '').trim().toLowerCase() !== khet.name.trim().toLowerCase()
+      )
+    );
     setSelectedKhetId(null);
+  };
+
+  const confirmDeleteKhet = () => {
+    if (!khetToDelete) return;
+    deleteKhet(khetToDelete);
+    setKhetToDelete(null);
+  };
+
+  const confirmDeleteCrop = () => {
+    if (!cropToDelete) return;
+    const { khet, crop } = cropToDelete;
+    const updatedCrops = khetCrops.filter((c) => c.id !== crop.id);
+    const updatedKhets = khets.map((k) => {
+      if (k.id === khet.id) {
+        return {
+          ...k,
+          crops: (k.crops || []).filter((c) => c.id !== crop.id),
+        };
+      }
+      return k;
+    });
+    saveKhetsAndCropsToStorage(updatedKhets, updatedCrops);
+    setCropToDelete(null);
   };
 
   const handleUpdateKhet = (updatedKhet: Khet) => {
@@ -537,16 +571,17 @@ export function FarmSection({
             <button
               type="button"
               onClick={() => setShowLandModal(true)}
-              className="h-8 px-2.5 rounded-lg border border-[var(--sk-border)] bg-[var(--sk-card)] hover:bg-[var(--sk-card2)] text-xs font-semibold text-emerald-700 dark:text-emerald-300 transition cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-sm"
+              className="h-8 px-2 sm:px-2.5 rounded-lg border border-[var(--sk-border)] bg-[var(--sk-card)] hover:bg-[var(--sk-card2)] text-[11px] sm:text-xs font-semibold text-emerald-700 dark:text-emerald-300 transition cursor-pointer flex items-center gap-1 active:scale-95 shadow-sm"
               title="इकाई सेटिंग"
             >
-              <Compass size={14} className="text-emerald-500 shrink-0" />
-              <span>{isHi ? `इकाई (${landSettings.bighaPerAcre} बीघा/एकड़)` : `Unit (${landSettings.bighaPerAcre} B/Ac)`}</span>
+              <Compass size={13} className="text-emerald-500 shrink-0" />
+              <span>{isHi ? 'इकाई' : 'Unit'}</span>
+              <span className="hidden sm:inline">{isHi ? ` (${landSettings.bighaPerAcre} बीघा/एकड़)` : ` (${landSettings.bighaPerAcre} B/Ac)`}</span>
             </button>
             <button
               type="button"
               onClick={handleExportExcel}
-              className="h-8 px-2.5 rounded-lg border border-[var(--sk-border)] bg-[var(--sk-card)] hover:bg-[var(--sk-card2)] text-xs font-semibold text-emerald-700 dark:text-emerald-300 transition cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-sm"
+              className="h-8 px-2 sm:px-2.5 rounded-lg border border-[var(--sk-border)] bg-[var(--sk-card)] hover:bg-[var(--sk-card2)] text-[11px] sm:text-xs font-semibold text-emerald-700 dark:text-emerald-300 transition cursor-pointer flex items-center gap-1 active:scale-95 shadow-sm"
               title="Excel डाउनलोड करें"
             >
               <FileSpreadsheet size={13} className="text-emerald-500 shrink-0" />
@@ -555,16 +590,17 @@ export function FarmSection({
             <button
               type="button"
               onClick={() => setShowPrintModal(true)}
-              className="h-8 px-2.5 rounded-lg border border-[var(--sk-border)] bg-[var(--sk-card)] hover:bg-[var(--sk-card2)] text-xs font-semibold text-emerald-700 dark:text-emerald-300 transition cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-sm"
+              className="h-8 px-2 sm:px-2.5 rounded-lg border border-[var(--sk-border)] bg-[var(--sk-card)] hover:bg-[var(--sk-card2)] text-[11px] sm:text-xs font-semibold text-emerald-700 dark:text-emerald-300 transition cursor-pointer flex items-center gap-1 active:scale-95 shadow-sm"
               title="PDF प्रिंट"
             >
               <Printer size={13} className="text-emerald-500 shrink-0" />
-              <span>{isHi ? 'PDF प्रिंट' : 'Print PDF'}</span>
+              <span>{isHi ? 'PDF' : 'PDF'}</span>
+              <span className="hidden sm:inline">{isHi ? ' प्रिंट' : ' Print'}</span>
             </button>
             <button
               type="button"
               onClick={downloadPhysicalBackup}
-              className="h-8 px-2.5 rounded-lg border border-[var(--sk-border)] bg-[var(--sk-card)] hover:bg-[var(--sk-card2)] text-xs font-semibold text-[var(--sk-text)] transition cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-sm"
+              className="h-8 px-2 sm:px-2.5 rounded-lg border border-[var(--sk-border)] bg-[var(--sk-card)] hover:bg-[var(--sk-card2)] text-[11px] sm:text-xs font-semibold text-[var(--sk-text)] transition cursor-pointer flex items-center gap-1 active:scale-95 shadow-sm"
               title="सुरक्षित बैकअप"
             >
               <Download size={13} className="text-emerald-500 shrink-0" />
@@ -698,9 +734,9 @@ export function FarmSection({
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 sm:gap-2.5 pt-2 md:pt-0 border-t md:border-t-0 border-[var(--sk-border)]">
-            <div className="rounded-lg bg-[var(--sk-card2)] border border-[var(--sk-border)] p-2 text-left min-w-[90px] sm:min-w-[105px]">
-              <span className="text-[10px] text-[var(--sk-muted)] block font-medium">
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 pt-2 md:pt-0 border-t md:border-t-0 border-[var(--sk-border)]">
+            <div className="rounded-lg bg-[var(--sk-card2)] border border-[var(--sk-border)] p-1.5 sm:p-2 text-left min-w-0">
+              <span className="text-[10px] text-[var(--sk-muted)] block font-medium truncate">
                 {isHi ? 'कुल लागत' : 'Total Cost'}
               </span>
               <span className="text-xs sm:text-sm font-bold font-mono text-[var(--sk-text)] mt-0.5 block truncate">
@@ -708,8 +744,8 @@ export function FarmSection({
               </span>
             </div>
 
-            <div className="rounded-lg bg-[var(--sk-card2)] border border-[var(--sk-border)] p-2 text-left min-w-[90px] sm:min-w-[105px]">
-              <span className="text-[10px] text-[var(--sk-muted)] block font-medium">
+            <div className="rounded-lg bg-[var(--sk-card2)] border border-[var(--sk-border)] p-1.5 sm:p-2 text-left min-w-0">
+              <span className="text-[10px] text-[var(--sk-muted)] block font-medium truncate">
                 {isHi ? 'कुल बिक्री' : 'Total Sales'}
               </span>
               <span className="text-xs sm:text-sm font-bold font-mono text-[var(--sk-text)] mt-0.5 block truncate">
@@ -717,8 +753,8 @@ export function FarmSection({
               </span>
             </div>
 
-            <div className="rounded-lg bg-[var(--sk-card2)] border border-[var(--sk-border)] p-2 text-left min-w-[90px] sm:min-w-[105px]">
-              <span className="text-[10px] text-[var(--sk-muted)] block font-medium">
+            <div className="rounded-lg bg-[var(--sk-card2)] border border-[var(--sk-border)] p-1.5 sm:p-2 text-left min-w-0">
+              <span className="text-[10px] text-[var(--sk-muted)] block font-medium truncate">
                 {isHi ? 'लेना बाकी' : 'Receivable'}
               </span>
               <span className={`text-xs sm:text-sm font-bold font-mono mt-0.5 block truncate ${
@@ -895,6 +931,8 @@ export function FarmSection({
                     setEditingRecord(null);
                     setShowRecordForm(true);
                   }}
+                  onDeleteKhet={(k) => setKhetToDelete(k)}
+                  onDeleteCrop={(k, crop) => setCropToDelete({ khet: k, crop })}
                 />
               ))}
             </div>
@@ -1123,6 +1161,38 @@ export function FarmSection({
         records={records}
         khets={khets}
         khetCrops={khetCrops}
+      />
+
+      {/* CONFIRM DELETE KHET MODAL */}
+      <ConfirmDeleteModal
+        isOpen={!!khetToDelete}
+        onClose={() => setKhetToDelete(null)}
+        onConfirm={confirmDeleteKhet}
+        title={isHi ? `खेत "${khetToDelete?.name}" हटाएं?` : `Delete Field "${khetToDelete?.name}"?`}
+        message={
+          isHi
+            ? `क्या आप वाकई "${khetToDelete?.name}" का खाता हटाना चाहते हैं? यह खेत और इससे जुड़े सभी फसल व लेन-देन रिकॉर्ड हटा दिए जाएंगे।`
+            : `Are you sure you want to delete "${khetToDelete?.name}" and all its records?`
+        }
+        confirmText={isHi ? 'हाँ, खेत हटाएं' : 'Delete Field'}
+        cancelText={isHi ? 'रद्द करें' : 'Cancel'}
+      />
+
+      {/* CONFIRM DELETE CROP MODAL */}
+      <ConfirmDeleteModal
+        isOpen={!!cropToDelete}
+        onClose={() => setCropToDelete(null)}
+        onConfirm={confirmDeleteCrop}
+        title={isHi ? 'फसल हटाएं?' : 'Delete Crop?'}
+        message={
+          isHi
+            ? `क्या आप वाकई "${cropToDelete?.khet?.name}" से फसल "${
+                cropToDelete ? cropLabel(lang, cropToDelete.crop.cropName) : ''
+              }" हटाना चाहते हैं?`
+            : `Are you sure you want to remove this crop from "${cropToDelete?.khet?.name}"?`
+        }
+        confirmText={isHi ? 'हाँ, फसल हटाएं' : 'Delete Crop'}
+        cancelText={isHi ? 'रद्द करें' : 'Cancel'}
       />
     </div>
   );

@@ -16,11 +16,13 @@ import {
   Sun,
   ShieldCheck,
   CheckCircle2,
+  LayoutDashboard,
 } from 'lucide-react';
 import { FarmRecord, Lang, Partner, PartnerCashEntry, RentRecord, HomeExpense } from './lib/types';
 import { FarmSection } from './components/farm/FarmSection';
 import { RentSection } from './components/rent/RentSection';
 import { HomeSection } from './components/home/HomeSection';
+import { DashboardSection } from './components/home/DashboardSection';
 import { SettingsSection } from './components/settings/SettingsSection';
 import { PinLockScreen } from './components/security/PinLockScreen';
 import {
@@ -110,7 +112,9 @@ export default function App() {
     }
     return 'dark';
   });
-  const [activeNav, setActiveNav] = useState<'farm' | 'rent' | 'home' | 'settings'>('farm');
+  const [activeNav, setActiveNav] = useState<
+    'dashboard' | 'farm' | 'rent' | 'home' | 'settings'
+  >('dashboard');
   const [appName, setAppName] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem(APP_NAME_STORAGE_KEY) || (isHi ? 'स्मार्ट खाता' : 'Smart Khata');
@@ -159,11 +163,11 @@ export default function App() {
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed)) return parsed;
         } catch { }
       }
     }
-    return DEFAULT_RECORDS;
+    return [];
   });
 
   // Partners
@@ -176,32 +180,7 @@ export default function App() {
         } catch { }
       }
     }
-    return [
-      {
-        id: 'p-1',
-        name: 'दिनेश गुर्जर',
-        phone: '9826112233',
-        relationship: 'batai_50_50',
-        sharePercent: 50,
-        khetName: 'बड़ा चक (उत्तर खेत)',
-        crop: 'Wheat',
-        season: 'Rabi 2026',
-        startDate: '2025-11-01',
-        notes: '50-50 अधिया बटाई, बीज व खाद आधा-आधा, हार्वेस्टर कटाई साझी',
-      },
-      {
-        id: 'p-2',
-        name: 'मुकेश धाकड़',
-        phone: '9425098765',
-        relationship: 'batai_third',
-        sharePercent: 33.33,
-        khetName: 'नहर वाला चक',
-        crop: 'Garlic',
-        season: 'Rabi 2026',
-        startDate: '2025-10-15',
-        notes: 'तिहाई बटाईदार (1/3 हिस्सा साझीदार, 2/3 मालिक)',
-      },
-    ];
+    return [];
   });
 
   // Partner cash entries
@@ -214,28 +193,7 @@ export default function App() {
         } catch { }
       }
     }
-    return [
-      {
-        id: 'pc-1',
-        partnerId: 'p-1',
-        date: '2025-12-05',
-        type: 'gave_to_partner',
-        purpose: 'advance',
-        amount: 8000,
-        mode: 'cash',
-        note: 'खाद व यूरिया के लिए नकद पेशगी दी',
-      },
-      {
-        id: 'pc-2',
-        partnerId: 'p-1',
-        date: '2026-01-10',
-        type: 'gave_to_partner',
-        purpose: 'advance',
-        amount: 5000,
-        mode: 'online',
-        note: 'घरेलू खर्चे हेतु ऑनलाइन ट्रांसफर',
-      },
-    ];
+    return [];
   });
 
   // Rent Records
@@ -245,11 +203,11 @@ export default function App() {
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed)) return parsed;
         } catch { }
       }
     }
-    return DEFAULT_RENT_RECORDS;
+    return [];
   });
 
   // Home Expenses
@@ -259,11 +217,11 @@ export default function App() {
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed)) return parsed;
         } catch { }
       }
     }
-    return DEFAULT_HOME_EXPENSES;
+    return [];
   });
 
   // LocalStorage Sync
@@ -344,8 +302,8 @@ export default function App() {
 
       {/* Top Header */}
       <header className={`sticky top-0 z-40 border-b backdrop-blur-md transition-colors ${theme === 'dark'
-          ? 'bg-[#08140e]/95 border-[#1a3525]'
-          : 'bg-white/95 border-slate-200 shadow-xs'
+        ? 'bg-[#08140e]/95 border-[#1a3525]'
+        : 'bg-white/95 border-slate-200 shadow-xs'
         }`}>
         <div className="max-w-[1200px] mx-auto px-3 sm:px-5 lg:px-6 h-14 sm:h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5 sm:gap-3">
@@ -365,33 +323,33 @@ export default function App() {
             </div>
           </div>
 
-          {/* Right Header Controls */}
+            {/* Right Header Controls */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             <PWAInstallButton lang={lang} variant="header" />
 
             <button
               type="button"
               onClick={toggleTheme}
-              className={`h-8 w-8 rounded-lg border transition cursor-pointer flex items-center justify-center active:scale-95 shadow-sm ${theme === 'dark'
-                  ? 'border-[#1e3c2c] bg-[#0c1a13] hover:bg-[#12271c] text-white'
-                  : 'border-slate-300 bg-white hover:bg-slate-100 text-slate-700'
+              className={`h-9 w-9 rounded-xl border transition cursor-pointer flex items-center justify-center active:scale-95 shadow-sm ${theme === 'dark'
+                ? 'border-[#1e3c2c] bg-[#0c1a13] hover:bg-[#12271c] text-white'
+                : 'border-slate-300 bg-white hover:bg-slate-100 text-slate-700'
                 }`}
               title={theme === 'dark' ? 'लाइट थीम चालू करें (Light Theme)' : 'डार्क थीम चालू करें (Dark Theme)'}
             >
-              {theme === 'dark' ? <Sun size={15} className="text-amber-400" /> : <Moon size={15} className="text-slate-700" />}
+              {theme === 'dark' ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-slate-700" />}
             </button>
 
             <button
               type="button"
               onClick={toggleLang}
-              className={`h-8 px-2.5 rounded-lg border text-xs font-bold transition cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-sm ${theme === 'dark'
-                  ? 'border-[#1e3c2c] bg-[#0c1a13] hover:bg-[#12271c] text-emerald-300'
-                  : 'border-slate-300 bg-white hover:bg-slate-100 text-emerald-700'
+              className={`h-9 px-2.5 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-sm ${theme === 'dark'
+                ? 'border-[#1e3c2c] bg-[#0c1a13] hover:bg-[#12271c] text-emerald-300'
+                : 'border-slate-300 bg-white hover:bg-slate-100 text-emerald-700'
                 }`}
               title="भाषा बदलें"
             >
-              <Languages size={14} className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} />
-              <span>{lang === 'hi' ? 'English' : 'हिन्दी'}</span>
+              <Languages size={15} className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} />
+              <span>{lang === 'hi' ? 'EN' : 'हिन्दी'}</span>
             </button>
           </div>
         </div>
@@ -401,20 +359,32 @@ export default function App() {
         {/* 4 MAIN MODULE TABS NAVIGATION */}
         <div
           className={`hidden sm:block border-t transition-colors ${theme === 'dark'
-              ? 'border-[#1a3525] bg-[#07130e]'
-              : 'border-slate-200 bg-slate-100/90'
+            ? 'border-[#1a3525] bg-[#07130e]'
+            : 'border-slate-200 bg-slate-100/90'
             }`}
         >
           <div className="max-w-[1200px] mx-auto px-2 sm:px-5 lg:px-6 flex items-center justify-around sm:justify-start overflow-x-auto no-scrollbar gap-1 py-2 sm:py-1">
-
             <button
               type="button"
-              onClick={() => setActiveNav('farm')}
-              className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-bold transition whitespace-nowrap cursor-pointer ${activeNav === 'farm'
+              onClick={() => setActiveNav('dashboard')}
+              className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-bold transition whitespace-nowrap cursor-pointer ${activeNav === 'dashboard'
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : theme === 'dark'
                     ? 'text-slate-400 hover:text-white hover:bg-[#0c1a13]'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                }`}
+            >
+              <LayoutDashboard size={20} className="sm:w-[15px] sm:h-[15px]" />
+              <span>{isHi ? 'डैशबोर्ड' : 'Dashboard'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveNav('farm')}
+              className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-bold transition whitespace-nowrap cursor-pointer ${activeNav === 'farm'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : theme === 'dark'
+                  ? 'text-slate-400 hover:text-white hover:bg-[#0c1a13]'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
                 }`}
             >
               <Wheat size={20} className="sm:w-[15px] sm:h-[15px]" />
@@ -425,10 +395,10 @@ export default function App() {
               type="button"
               onClick={() => setActiveNav('rent')}
               className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-bold transition whitespace-nowrap cursor-pointer ${activeNav === 'rent'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : theme === 'dark'
-                    ? 'text-slate-400 hover:text-white hover:bg-[#0c1a13]'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : theme === 'dark'
+                  ? 'text-slate-400 hover:text-white hover:bg-[#0c1a13]'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
                 }`}
             >
               <Building2 size={20} className="sm:w-[15px] sm:h-[15px]" />
@@ -440,10 +410,10 @@ export default function App() {
               type="button"
               onClick={() => setActiveNav('home')}
               className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-bold transition whitespace-nowrap cursor-pointer ${activeNav === 'home'
-                  ? 'bg-green-600 text-white shadow-sm'
-                  : theme === 'dark'
-                    ? 'text-slate-400 hover:text-white hover:bg-[#0c1a13]'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                ? 'bg-green-600 text-white shadow-sm'
+                : theme === 'dark'
+                  ? 'text-slate-400 hover:text-white hover:bg-[#0c1a13]'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
                 }`}
             >
               <ShoppingBag size={20} className="sm:w-[15px] sm:h-[15px]" />
@@ -455,10 +425,10 @@ export default function App() {
               type="button"
               onClick={() => setActiveNav('settings')}
               className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-bold transition whitespace-nowrap cursor-pointer ${activeNav === 'settings'
-                  ? 'bg-slate-700 text-white shadow-sm'
-                  : theme === 'dark'
-                    ? 'text-slate-400 hover:text-white hover:bg-[#0c1a13]'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                ? 'bg-slate-700 text-white shadow-sm'
+                : theme === 'dark'
+                  ? 'text-slate-400 hover:text-white hover:bg-[#0c1a13]'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
                 }`}
             >
               <Settings size={20} className="sm:w-[15px] sm:h-[15px]" />
@@ -471,76 +441,105 @@ export default function App() {
 
       </header>
 
+
       
-{/* MOBILE NAVIGATION  */}
-<div
-  className={`sm:hidden fixed bottom-0 left-0 right-0 z-[100] border-t ${
-  theme === 'dark'
-    ? 'bg-[#07130e] border-[#1a3525] text-white'
-    : 'bg-white border-slate-200 text-slate-900'
-}`}
-  
->
-  <div className="grid grid-cols-4 gap-1 p-2">
+      {/* MOBILE NAVIGATION */}
+      <div
+        className={`sm:hidden fixed bottom-0 left-0 right-0 z-30 border-t ${
+          theme === 'dark'
+            ? 'bg-[#07130e]/98 backdrop-blur-lg border-[#1a3525] text-white'
+            : 'bg-white/98 backdrop-blur-lg border-slate-200 text-slate-900 shadow-lg'
+        }`}
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 4px)' }}
+      >
+        <nav
+          aria-label={isHi ? 'मुख्य नेविगेशन' : 'Main navigation'}
+          className="grid grid-cols-5 gap-1 px-1.5 pt-1.5 pb-1"
+        >
+          {[
+            {
+              id: 'dashboard',
+              label: isHi ? 'डैशबोर्ड' : 'Dashboard',
+              icon: LayoutDashboard,
+              activeColor: 'bg-emerald-600 text-white',
+            },
+            {
+              id: 'farm',
+              label: isHi ? 'खेत' : 'Farm',
+              icon: Wheat,
+              activeColor: 'bg-emerald-600 text-white',
+            },
+            {
+              id: 'rent',
+              label: isHi ? 'किराया' : 'Rent',
+              icon: Building2,
+              activeColor: 'bg-blue-600 text-white',
+            },
+            {
+              id: 'home',
+              label: isHi ? 'घरेलू खर्च' : 'Home',
+              icon: ShoppingBag,
+              activeColor: 'bg-violet-600 text-white',
+            },
+            {
+              id: 'settings',
+              label: isHi ? 'सेटिंग्स' : 'Settings',
+              icon: Settings,
+              activeColor: 'bg-slate-700 text-white',
+            },
+          ].map((item) => {
+            const Icon = item.icon;
+            const isActive = activeNav === item.id;
 
-    <button
-      type="button"
-      onClick={() => setActiveNav('farm')}
-      className={`flex flex-col items-center gap-1 rounded-lg p-2 text-xs font-bold cursor-pointer transition ${
-        activeNav === 'farm'
-          ? 'bg-emerald-600 text-white shadow-sm'
-          : theme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
-      }`}
-    >
-      <Wheat size={20} />
-      <span>{isHi ? 'खेत' : 'Farm'}</span>
-    </button>
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() =>
+                  setActiveNav(
+                    item.id as
+                      | 'dashboard'
+                      | 'farm'
+                      | 'rent'
+                      | 'home'
+                      | 'settings'
+                  )
+                }
+                aria-current={isActive ? 'page' : undefined}
+                className={`flex min-w-0 min-h-[52px] flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 py-1 transition-colors ${
+                  isActive
+                    ? `${item.activeColor} shadow-sm font-bold`
+                    : theme === 'dark'
+                      ? 'text-slate-400 active:bg-[#12271c]'
+                      : 'text-slate-600 active:bg-slate-100'
+                }`}
+              >
+                <Icon size={20} strokeWidth={isActive ? 2.5 : 1.9} />
+                <span className="w-full truncate text-center text-[10px] font-medium leading-tight sm:text-xs">
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
 
-    <button
-      type="button"
-      onClick={() => setActiveNav('rent')}
-      className={`flex flex-col items-center gap-1 rounded-lg p-2 text-xs font-bold cursor-pointer transition ${
-        activeNav === 'rent'
-          ? 'bg-blue-600 text-white shadow-sm'
-          : theme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
-      }`}
-    >
-      <Building2 size={20} />
-      <span>{isHi ? 'किराया' : 'Rent'}</span>
-    </button>
-
-    <button
-      type="button"
-      onClick={() => setActiveNav('home')}
-      className={`flex flex-col items-center gap-1 rounded-lg p-2 text-xs font-bold cursor-pointer transition ${
-        activeNav === 'home'
-          ? 'bg-green-600 text-white shadow-sm'
-          : theme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
-      }`}
-    >
-      <ShoppingBag size={20} />
-      <span>{isHi ? 'घरेलू खर्च' : 'Home'}</span>
-    </button>
-
-    <button
-      type="button"
-      onClick={() => setActiveNav('settings')}
-      className={`flex flex-col items-center gap-1 rounded-lg p-2 text-xs font-bold cursor-pointer transition ${
-        activeNav === 'settings'
-          ? 'bg-slate-700 text-white shadow-sm'
-          : theme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
-      }`}
-    >
-      <Settings size={20} />
-      <span>{isHi ? 'सेटिंग्स' : 'Settings'}</span>
-    </button>
-
-  </div>
-</div>
 
 
       {/* Main Content Render */}
-      <main className="flex-1 py-4 pb-24 sm:pb-6 sm:py-6">
+      <main className="flex-1 py-3 sm:py-6 pb-28 sm:pb-8">
+        {/* Mobile PWA Install Smart Banner */}
+        <PWAInstallButton lang={lang} variant="mobile-banner" />
+
+        {activeNav === 'dashboard' && (
+          <DashboardSection
+            records={records}
+            rentRecords={rentRecords}
+            homeExpenses={homeExpenses}
+            lang={lang}
+            onNavigate={setActiveNav}
+          />
+        )}
         {activeNav === 'farm' && (
           <FarmSection
             records={records}
@@ -589,8 +588,8 @@ export default function App() {
 
       {/* Footer */}
       <footer className={`border-t py-4 text-center text-xs transition-colors ${theme === 'dark'
-          ? 'border-[#1a3525] bg-[#07130e] text-slate-400'
-          : 'border-slate-200 bg-white text-slate-600'
+        ? 'border-[#1a3525] bg-[#07130e] text-slate-400'
+        : 'border-slate-200 bg-white text-slate-600'
         }`}>
         <div className="max-w-[1200px] mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>🌾 स्मार्ट खाता - भारतीय किसानों के लिए डिजिटल कृषि, बटाई, किराया व घरेलू बहीखाता</span>
