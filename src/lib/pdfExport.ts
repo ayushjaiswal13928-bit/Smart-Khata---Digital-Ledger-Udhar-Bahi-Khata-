@@ -218,3 +218,15 @@ export function downloadPrintableHtml(options: {
   link.click();
   document.body.removeChild(link);
 }
+
+
+/**
+ * Opens the financial report in the browser's print dialog.
+ * Select "Save as PDF" to save the report as a PDF file.
+ */
+export async function downloadFinancialReportPdf(
+  options: PrintFinancialReportOptions,
+  _filename?: string
+): Promise<void> {
+  printFinancialReport(options);
+}
